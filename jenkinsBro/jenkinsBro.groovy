@@ -36,7 +36,7 @@ new File("${home_dir}/jenkinsBro/lib/helpers").listFiles({ file -> file.name.end
   def helper = shell.parse(file)
   def name = file.name[0..-8].replaceAll(/[^A-Za-z0-9]/, '')
   if( helpers.containsKey(name) )
-    warning "  skipping ${name}: helpers already contains this method"
+    warn "  skipping ${name}: helpers already contains this method"
   else
     helpers[name] = helper.&"${name}"
 }
@@ -49,7 +49,7 @@ new File("${home_dir}/jenkinsBro/lib/interfaces").listFiles({ file -> file.name.
   def module = shell.parse(file)
   def name = file.name[0..-8].replaceAll(/[^A-Za-z0-9]/, '')
   if( binding.variables.containsKey(name) )
-    warning "  skipping ${name}: binding already contains this variable"
+    warn "  skipping ${name}: binding already contains this variable"
   else
     binding.setVariable(name, module.&"${name}")
 }
@@ -71,7 +71,7 @@ CONFIG.modules.each { name, module ->
     binding.setVariable('MODULE', module)
     evaluate(available_modules.find { file -> file.name[0..-8] == name })
   } catch( Exception e ) {
-    def st = e.getStackTrace().findAll { it.getFileName().endsWith('.groovy') }
+    def st = e.getStackTrace().findAll { it.getFileName()?.endsWith('.groovy') }
     error "Exception while processing module ${name}: ${e.toString()}\n${st.join('\n')}"
   }
 }

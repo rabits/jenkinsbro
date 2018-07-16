@@ -27,13 +27,22 @@ pluginsActive 'credentials', {
         )
         break
 
+      case 'string':
+        creds = org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl.newInstance(
+          CredentialsScope.GLOBAL,
+          cred.id,
+          cred.description,
+          hudson.util.Secret.fromString(cred.string)
+        )
+        break
+
       case 'ssh':
         creds = pluginsActive 'ssh-credentials', {
-          new com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey(
+          com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey.newInstance(
             CredentialsScope.GLOBAL,
             cred.id,
             cred.user_id,
-            new com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey.DirectEntryPrivateKeySource(cred.key),
+            com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey.DirectEntryPrivateKeySource.newInstance(cred.key),
             cred.get('passphrase'),
             cred.description
           )
@@ -42,7 +51,7 @@ pluginsActive 'credentials', {
 
       case 'file':
         creds = pluginsActive 'plain-credentials', {
-          new org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl(
+          org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl.newInstance(
             CredentialsScope.GLOBAL,
             cred.id,
             cred.description,
@@ -54,7 +63,7 @@ pluginsActive 'credentials', {
 
       case 'gitlab_api_token':
         creds = pluginsActive 'gitlab-plugin', {
-          new com.dabsquared.gitlabjenkins.connection.GitLabApiTokenImpl(
+          com.dabsquared.gitlabjenkins.connection.GitLabApiTokenImpl.newInstance(
             CredentialsScope.GLOBAL,
             cred.id,
             cred.description,
