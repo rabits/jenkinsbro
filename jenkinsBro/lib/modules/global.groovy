@@ -1,14 +1,36 @@
 import hudson.model.*
 import jenkins.model.*
 
-info "Set number of executors on master to ${MODULE.num_executors_on_master}"
-Jenkins.instance.setNumExecutors(MODULE.num_executors_on_master)
+def I = Jenkins.getInstance()
 
-info "Set quite period to ${MODULE.scm_quiet_period}"
-Jenkins.instance.setQuietPeriod(MODULE.scm_quiet_period)
+info "Set number of executors on master"
+I.setNumExecutors(MODULE.num_executors_on_master ?: 2)
 
-info "Set checkout retry to ${MODULE.scm_checkout_retry_count}"
-Jenkins.instance.setScmCheckoutRetryCount(MODULE.scm_checkout_retry_count)
+info "Set quiet period"
+I.setQuietPeriod(MODULE.quiet_period ?: 3)
+
+info "Set checkout retry"
+I.setScmCheckoutRetryCount(MODULE.scm_checkout_retry_count ?: 2)
+
+info 'Disable Jenkins CLI'
+def cli = I.getDescriptor('jenkins.CLI')
+if( cli ) {
+  cli.setEnabled(MODULE.enable_cli ?: false)
+  cli.save()
+}
+
+info 'Enable jenkins CSRF protection'
+if( MODULE.enable_csrf_protection ?: true )
+  I.setCrumbIssuer(hudson.security.csrf.DefaultCrumbIssuer.newInstance(false))
+else
+  I.setCrumbIssuer(null)
+
+info 'Configure Slave to Master access control'
+I.getInjector().getInstance(jenkins.security.s2m.AdminWhitelistRule.class).
+  setMasterKillSwitch(MODULE.disable_agent_master_security ?: false)
+
+info 'Set list JNLP protocols'
+I.setAgentProtocols(MODULE.get('jnlp_agent_protocols', ['JNLP4-connect', 'Ping']).toSet())
 
 jlc = JenkinsLocationConfiguration.get()
 if( MODULE.jenkins_root_url ) {
@@ -30,17 +52,16 @@ if( MODULE.jenkins_admin_email ) {
 }
 
 info "Set Global GIT configuration name to ${MODULE.git.name} and email address to ${MODULE.git.email}"
-def inst = Jenkins.getInstance()
-def desc = inst.getDescriptor("hudson.plugins.git.GitSCM")
-desc.setGlobalConfigName(MODULE.git.name)
-desc.setGlobalConfigEmail(MODULE.git.email)
+def desc = I.getDescriptor("hudson.plugins.git.GitSCM")
+desc.setGlobalConfigName(MODULE.git.name ?: '')
+desc.setGlobalConfigEmail(MODULE.git.email ?: '')
 
 if( MODULE.smtp ) {
   info "Setting E-mail configuration..."
-  def email_desc = inst.getDescriptor(hudson.tasks.Mailer)
+  def email_desc = I.getDescriptor(hudson.tasks.Mailer)
   email_desc.setSmtpHost(MODULE.smtp.host)
   email_desc.setSmtpPort(MODULE.smtp.port as String)
-  email_desc.setReplyToAddress(MODULE.smtp.reply_to_address)  
+  email_desc.setReplyToAddress(MODULE.smtp.reply_to_address)
   if( MODULE.smtp.auth )
     email_desc.setSmtpAuth(MODULE.smtp.auth.login, MODULE.smtp.auth.password)
 } else
@@ -58,7 +79,7 @@ if( env.containsKey('JENKINS_BUILD_VERSION') ) {
                    "Jenkins docker image version: ${env['JENKINS_BUILD_VERSION']}\n" +
                    "Deployment date: ${sdf.format(date)}\n\n"
   info "Set system message to:\n${system_message}"
-  Jenkins.instance.setSystemMessage(system_message)
+  I.setSystemMessage(system_message)
 } else
   warn "Can't set system message - missing env variable JENKINS_IMAGE_VERSION"
 
@@ -66,3 +87,5 @@ info "Setting global env variables..."
 MODULE.variables.each { key, value ->
   helpers.addGlobalEnvVariable(key, value)
 }
+
+I.save()

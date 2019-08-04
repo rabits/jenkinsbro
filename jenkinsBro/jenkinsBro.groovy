@@ -3,6 +3,7 @@
 **/
 
 import jenkins.model.Jenkins
+import groovy.json.JsonSlurper
 
 // Default functions
 binding.setVariable('info', { Object... params ->
@@ -17,16 +18,34 @@ binding.setVariable('error', { Object... params ->
 
 info 'JenkinsBRO running'
 
-def home_dir = System.getenv("JENKINS_HOME")
-def config_parser = new ConfigSlurper()
+def home_dir = System.getenv('JENKINS_HOME')
 
-info 'Reading configuration secrets...'
-def secrets = config_parser.parse(new File(System.getenv('JENKINSBRO_SECRETS_PATH') ?: "${home_dir}/config/secrets.conf").toURI().toURL())
-info "  binding next secrets: ${secrets.keySet().join(', ')}"
-config_parser.setBinding([secrets: secrets])
+def configs_file = new File(System.getenv('JENKINSBRO_CONFIGS_PATH') ?: "${home_dir}/config/jenkins.conf")
+if( !(configs_file.exists() || configs_file.canRead()) )
+  return warn('  configuration not found, skipping JenkinsBRO run')
+
+def config_parser
+if( !configs_file.getName().endsWith('.json') ) {
+  config_parser = new ConfigSlurper()
+
+  info 'Reading configuration secrets...'
+  def secrets_file = new File(System.getenv('JENKINSBRO_SECRETS_PATH') ?: "${home_dir}/config/secrets.conf")
+  if( secrets_file.exists() || secrets_file.canRead() ) {
+    def secrets = config_parser.parse(secrets_file.toURI().toURL())
+    if( secrets.get('delete_secrets_file', true) )
+      secrets_file.delete()
+    info "  binding next secrets: ${secrets.keySet().join(', ')}"
+    config_parser.setBinding([secrets: secrets])
+  } else
+    warn '  secrets not found, skipping'
+} else
+  config_parser = new JsonSlurper()
 
 info 'Reading the jenkins configuration...'
-binding.setVariable('CONFIG', config_parser.parse(new File(System.getenv('JENKINSBRO_CONFIGS_PATH') ?: "${home_dir}/config/jenkins.conf").toURI().toURL()))
+binding.setVariable('CONFIG', config_parser.parse(configs_file.toURI().toURL()))
+
+if( CONFIG.get('delete_configs_file', true) )
+  configs_file.delete()
 
 GroovyShell shell = new GroovyShell(Jenkins.instance.getPluginManager().uberClassLoader, binding)
 

@@ -11,15 +11,15 @@ pluginsActive 'workflow-cps-global-lib', 'git', {
     def scm_source = new jenkins.plugins.git.GitSCMSource(
       value.name,
       value.scm_path,
-      value.credentials_id,
+      value.credentials_id ?: null,
       null, null, false
     )
     LibraryConfiguration lib_config = new LibraryConfiguration(
       value.name, new SCMSourceRetriever(scm_source)
     )
     lib_config.setDefaultVersion(value.version)
-    lib_config.setImplicit(value.implicitly)
-    lib_config.setAllowVersionOverride(value.allow_overridden)
+    lib_config.setImplicit(value.implicitly ?: false)
+    lib_config.setAllowVersionOverride(value.allow_overridden ?: true)
     lib_configs.add(lib_config)
   }
   gl.setLibraries(lib_configs)
