@@ -1,7 +1,10 @@
-import hudson.model.*
-import jenkins.model.*
+/**
+ * Global jenkins configuration
+ *
+ * Contains small parameters not worth to have a separated module
+ */
 
-def I = Jenkins.getInstance()
+def I = jenkins.model.Jenkins.getInstance()
 
 info "Set number of executors on master"
 I.setNumExecutors(MODULE.num_executors_on_master ?: 2)
@@ -32,32 +35,28 @@ I.getInjector().getInstance(jenkins.security.s2m.AdminWhitelistRule.class).
 info 'Set list JNLP protocols'
 I.setAgentProtocols(MODULE.get('jnlp_agent_protocols', ['JNLP4-connect', 'Ping']).toSet())
 
-jlc = JenkinsLocationConfiguration.get()
-if( MODULE.jenkins_root_url ) {
-  info "Set jenkins root url to ${MODULE.jenkins_root_url}"
-  jlc.setUrl(MODULE.jenkins_root_url)
-} else {
-  def ip = java.net.InetAddress.localHost.getHostAddress()
-  info "Set jenkins root url to ${ip}"
-  jlc.setUrl("http://$ip:8080")
-}
+def jenkins_url = MODULE.jenkins_root_url ?: "http://${java.net.InetAddress.localHost.getHostAddress()}:8080/"
+info "Set jenkins root url to ${jenkins_url}"
+def jlc = jenkins.model.JenkinsLocationConfiguration.get()
+jlc.setUrl(jenkins_url)
 jlc.save()
 
 // Set Admin Email as a string "Name <email>"
 if( MODULE.jenkins_admin_email ) {
-  def jlc = JenkinsLocationConfiguration.get()
   info "Set admin e-mail address to ${MODULE.jenkins_admin_email}"
   jlc.setAdminAddress(MODULE.jenkins_admin_email)
   jlc.save()
 }
 
-info "Set Global GIT configuration name to ${MODULE.git.name} and email address to ${MODULE.git.email}"
-def desc = I.getDescriptor("hudson.plugins.git.GitSCM")
-desc.setGlobalConfigName(MODULE.git.name ?: '')
-desc.setGlobalConfigEmail(MODULE.git.email ?: '')
+def desc = I.getDescriptor('hudson.plugins.git.GitSCM')
+if( desc && MODULE.git ) {
+  info "Set Global GIT configuration name to ${MODULE.git.name} and email address to ${MODULE.git.email}"
+  desc.setGlobalConfigName(MODULE.git.name ?: '')
+  desc.setGlobalConfigEmail(MODULE.git.email ?: '')
+}
 
 if( MODULE.smtp ) {
-  info "Setting E-mail configuration..."
+  info 'Setting E-mail configuration...'
   def email_desc = I.getDescriptor(hudson.tasks.Mailer)
   email_desc.setSmtpHost(MODULE.smtp.host)
   email_desc.setSmtpPort(MODULE.smtp.port as String)
@@ -81,9 +80,9 @@ if( env.containsKey('JENKINS_BUILD_VERSION') ) {
   info "Set system message to:\n${system_message}"
   I.setSystemMessage(system_message)
 } else
-  warn "Can't set system message - missing env variable JENKINS_IMAGE_VERSION"
+  warn 'Cant set system message - missing env variable JENKINS_IMAGE_VERSION'
 
-info "Setting global env variables..."
+info 'Setting global env variables...'
 MODULE.variables.each { key, value ->
   helpers.addGlobalEnvVariable(key, value)
 }

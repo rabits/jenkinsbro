@@ -1,12 +1,13 @@
-import jenkins.model.Jenkins
-
-import com.dabsquared.gitlabjenkins.connection.*
+/**
+ * Simple module to setup gitlab connection
+ */
 
 pluginsActive 'gitlab-plugin', {
   info "Setting gitlab credentials ${MODULE.credentials_id} for connection ${MODULE.name}"
-  GitLabConnectionConfig descriptor = Jenkins.getInstance().getDescriptor(GitLabConnectionConfig.class)
+  def descriptor = Jenkins.getInstance().getDescriptor(
+    com.dabsquared.gitlabjenkins.connection.GitLabConnectionConfig.class)
 
-  GitLabConnection gitLabConnection = new GitLabConnection(
+  def gitlab_connection = new com.dabsquared.gitlabjenkins.connection.GitLabConnection(
     MODULE.name,
     MODULE.url,
     MODULE.credentials_id,
@@ -14,6 +15,6 @@ pluginsActive 'gitlab-plugin', {
   )
 
   descriptor.getConnections().clear()
-  descriptor.addConnection(gitLabConnection)
+  descriptor.addConnection(gitlab_connection)
   descriptor.save()
 }

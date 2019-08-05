@@ -3,6 +3,10 @@
  *
  * - Type of the tool is the same as on Global Tool Configuration page
  * - Installer name is existing on the Global Tool Configuration page when install automatically checkbox is selected
+ *
+ * Format: tools.type.name.installers:[[name, params:[]]]
+ *
+ * Check the example config to find out how to use this module
  */
 
 import java.lang.reflect.ParameterizedType

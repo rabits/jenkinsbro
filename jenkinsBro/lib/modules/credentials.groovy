@@ -1,25 +1,35 @@
-import java.lang.System
-import jenkins.*
-import hudson.model.*
-import jenkins.model.*
-
-// Plugins for credentials
-import com.cloudbees.plugins.credentials.*
-import com.cloudbees.plugins.credentials.common.*
-import com.cloudbees.plugins.credentials.domains.*
-import com.cloudbees.plugins.credentials.impl.*
+/**
+ * Credentials module
+ * Allow to set the required jenkins credentials
+ *
+ * Format: credentials.name.{type,id,description}
+ *
+ * Types:
+ *   password:
+ *     user_id
+ *     password
+ *   string:
+ *     string - data to store
+ *   ssh:
+ *     key - ssh pem key
+ *     passphrase - password to decrypt the key
+ *   file:
+ *     file_name
+ *     context
+ */
 
 pluginsActive 'credentials', {
-  global_domain = Domain.global()
-  credentials_store = Jenkins.instance.getExtensionList(SystemCredentialsProvider)[0].getStore()
+  global_domain = com.cloudbees.plugins.credentials.domains.Domain.global()
+  credentials_store = jenkins.model.Jenkins.instance.getExtensionList(
+    com.cloudbees.plugins.credentials.SystemCredentialsProvider)[0].getStore()
 
   MODULE.each { name, cred ->
     info "Creating ${cred.type} credentials ${name}"
     def creds = null
     switch( cred.type ) {
       case 'password':
-        creds = new UsernamePasswordCredentialsImpl(
-          CredentialsScope.GLOBAL,
+        creds = new com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl(
+          com.cloudbees.plugins.credentials.CredentialsScope.GLOBAL,
           cred.id,
           cred.description,
           cred.user_id,
@@ -29,7 +39,7 @@ pluginsActive 'credentials', {
 
       case 'string':
         creds = org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl.newInstance(
-          CredentialsScope.GLOBAL,
+          com.cloudbees.plugins.credentials.CredentialsScope.GLOBAL,
           cred.id,
           cred.description,
           hudson.util.Secret.fromString(cred.string)
@@ -39,7 +49,7 @@ pluginsActive 'credentials', {
       case 'ssh':
         creds = pluginsActive 'ssh-credentials', {
           com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey.newInstance(
-            CredentialsScope.GLOBAL,
+            com.cloudbees.plugins.credentials.CredentialsScope.GLOBAL,
             cred.id,
             cred.user_id,
             com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey.DirectEntryPrivateKeySource.newInstance(cred.key),
@@ -52,11 +62,11 @@ pluginsActive 'credentials', {
       case 'file':
         creds = pluginsActive 'plain-credentials', {
           org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl.newInstance(
-            CredentialsScope.GLOBAL,
+            com.cloudbees.plugins.credentials.CredentialsScope.GLOBAL,
             cred.id,
             cred.description,
             cred.file_name,
-            SecretBytes.fromString(cred.context)
+            com.cloudbees.plugins.credentials.SecretBytes.fromString(cred.context)
           )
         }
         break
@@ -64,7 +74,7 @@ pluginsActive 'credentials', {
       case 'gitlab_api_token':
         creds = pluginsActive 'gitlab-plugin', {
           com.dabsquared.gitlabjenkins.connection.GitLabApiTokenImpl.newInstance(
-            CredentialsScope.GLOBAL,
+            com.cloudbees.plugins.credentials.CredentialsScope.GLOBAL,
             cred.id,
             cred.description,
             hudson.util.Secret.fromString(cred.token)
