@@ -26,7 +26,6 @@ ENV JENKINS_HOME=${jenkins_home} \
     JENKINS_UC=https://updates.jenkins.io \
     JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental \
     JENKINS_INCREMENTALS_REPO_MIRROR=https://repo.jenkins-ci.org/incrementals \
-    # Disabling setup wizard
     JAVA_OPTS="-Djenkins.install.runSetupWizard=false ${JAVA_OPTS:-}" \
     COPY_REFERENCE_FILE_LOG=${jenkins_home}/copy_reference_file.log
 

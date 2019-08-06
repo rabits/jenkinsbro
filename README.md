@@ -144,14 +144,14 @@ and modify them as you wish.
 
 Now you should be ready to run your local jenkins master:
 ```
-$ docker build -t jenkins-master .
-$ docker run --name jenkins --rm -it -p 8085:8080 -p 50005:50000 jenkins-master
+$ docker build -t jenkinsbro-master .
+$ docker run --name jenkins --rm -it -p 8085:8080 -p 50005:50000 jenkinsbro-master
 ```
 After that you can connect to the http://localhost:8085/ and check the configuration
 
 If you would like to mount your local directory to save the jenkins data:
 ```
-$ docker build -t jenkins-master .
+$ docker build -t jenkinsbro-master .
 $ mkdir ~/.jenkins; chown 1000 ~/.jenkins ; cp -a config ~/.jenkins
-$ docker run --name jenkins --rm -it -v ~/.jenkins:/var/jenkins_home:z -p 8085:8080 -p 50005:50000 jenkins-master
+$ docker run --name jenkins --rm -it -v ~/.jenkins:/var/jenkins_home:z -p 8085:8080 -p 50005:50000 jenkinsbro-master
 ```

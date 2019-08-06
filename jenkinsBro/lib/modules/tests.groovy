@@ -9,7 +9,7 @@
  *   tests.report_dir   - dir to place the test junit xml reports (def: `$JENKINSBRO_DIR/junit_report`)
  *   tests.wait_sec     - how much time (sec) wait for Jenkins to be ready to use after the configuration
  *   tests.modules      - map with override configuration for modules to execute tests that requires configuration
- *   tests.exit_on_finished - when all the tests are completed it could automatically shutdown jenkins
+ *   tests.exit_on_finished - when all the tests are completed - automatically shutdown jenkins with exit code = number of failed tests
  *
  * Global:
  *   CONFIG.modules     - will be used if to find module if `tests.modules.{module}` is not defined
@@ -54,6 +54,8 @@ Thread.start('JenkinsBro tests') {
   def junit_report_dir = new File(MODULE.report_dir ?: "${JENKINSBRO_DIR}/junit_report")
   junit_report_dir.deleteDir()
   junit_report_dir.mkdir()
+
+  def failed_tests = 0
 
   info "JenkinsBro tests started, status file: `${status_file}`, reports dir: `${junit_report_dir}`"
 
@@ -109,12 +111,7 @@ Thread.start('JenkinsBro tests') {
 
       info "Running test suite: ${it.getName()}..."
       def result = core.run(clazz)
-      /*if( result.getFailureCount() ) {
-        info "Failure count: ${result.getFailureCount()}"
-        result.getFailures().forEach {
-          info "Exception ${it.getException()}"
-        }
-      }*/
+      failed_tests += result.getFailureCount()
     }
   } catch( Exception ex ) {
     warn "Exception while executing tests: ${ex}"
@@ -125,6 +122,6 @@ Thread.start('JenkinsBro tests') {
   info 'JenkinsBro tests: All tests are finished'
   if( MODULE.exit_on_finished ?: false ) {
     info 'JenkinsBro tests: Shutdown Jenkins'
-    System.exit(0)
+    System.exit(failed_tests)
   }
 }
