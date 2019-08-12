@@ -7,13 +7,13 @@
 def I = jenkins.model.Jenkins.getInstance()
 
 info "Set number of executors on master"
-I.setNumExecutors(MODULE.num_executors_on_master ?: 2)
+I.setNumExecutors("${MODULE.num_executors_on_master}".isInteger() ? MODULE.num_executors_on_master : 2)
 
 info "Set quiet period"
-I.setQuietPeriod(MODULE.quiet_period ?: 3)
+I.setQuietPeriod("${MODULE.quiet_period}".isInteger() ? MODULE.quiet_period : 3)
 
 info "Set checkout retry"
-I.setScmCheckoutRetryCount(MODULE.scm_checkout_retry_count ?: 2)
+I.setScmCheckoutRetryCount("${MODULE.scm_checkout_retry_count}".isInteger() ? MODULE.scm_checkout_retry_count : 2)
 
 info 'Disable Jenkins CLI'
 def cli = I.getDescriptor('jenkins.CLI')
