@@ -34,11 +34,19 @@ MODULE.each { type, list ->
   if( ! tool_desc )
     return error("Unable to find tool type in the list ${tools.keySet()}")
 
-  // Getting tool installer class from the descriptor installed tools array class type:
-  def tool_class = tool_desc.getInstallations().getClass().getComponentType()
+  def tools_lst = list.collect { name, config ->
+    info "Processing tool ${type}->${name}"
+    // Getting tool installer class from the config or descriptor
+    def tool_class = (config.tool ? tools.get(config.tool) : tool_desc).getKlass().toJavaClass()
 
-  // Recreating the list of tools from scratch - no way to modify existing one
-  tool_desc.setInstallations(*list.collect { name, config ->
+    if( config.empty_constructor ) {
+      try {
+        return tool_class.newInstance()
+      } catch(Exception ex) {
+        return error("Exception occured during tool object creation: ${ex}")
+      }
+    }
+
     // Constructing installers list
     config.installers ?: warn("Unable to find installers for tool ${type}->${name}")
     tool_insts = config.get('installers', []).collect {
@@ -70,11 +78,15 @@ MODULE.each { type, list ->
 
     // And creating the tool
     try {
-      tool_class.newInstance((tool_params + [null]*add_params) as Object[])
+      return tool_class.newInstance((tool_params + [null]*add_params) as Object[])
     } catch(Exception ex) {
       return error("Exception occured during tool object creation: ${ex}")
     }
-  })
+  }
+
+  // Recreating the list of tools from scratch - no way to modify existing one
+  // ToolDescriptor.getInstallations returns type of the provided Array
+  tool_desc.setInstallations(tools_lst.toArray(java.lang.reflect.Array.newInstance(tool_desc.getKlass().toJavaClass(), tools_lst.size())))
 
   tool_desc.save()
 }
