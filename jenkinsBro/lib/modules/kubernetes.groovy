@@ -24,6 +24,7 @@
  *           inherit_from ('') - override some parameters of the parent template
  *           label ('') - what the labels is provided by the template
  *           active_deadline_seconds (28800) - timeout to kill the pod
+ *           dump_raw_yaml (false) - dump the raw yaml pod specification to the build console
  *           env { - environment to set for pod
  *             [key] = [value]
  *           }
@@ -90,6 +91,7 @@ pluginsActive 'kubernetes', {
       temp.setInheritFrom(temp_conf.inherit_from ?: '')
       temp.setLabel(temp_conf.label ?: '')
       temp.setActiveDeadlineSeconds(temp_conf.active_deadline_seconds ?: 28800)
+      temp.setShowRawYaml(temp_conf.dump_raw_yaml ?: false)
       temp.setEnvVars(temp_conf.env.collect { key, value ->
         org.csanchez.jenkins.plugins.kubernetes.model.KeyValueEnvVar.newInstance(key, value)
       })
