@@ -8,6 +8,7 @@
  *       type - right now supported only "maven_settings"
  *       comment - just a commentary
  *       content - config file content
+ *       creds - key-value map with key some name and value is credential-id (maven_settings and properties)
  *     }
  *   }
  */
@@ -24,7 +25,49 @@ pluginsActive 'config-file-provider', {
           config.comment,
           config.content,
           true,
-          null // Do not support credentials for now
+          config.creds?.collect { org.jenkinsci.plugins.configfiles.maven.security.ServerCredentialMapping.newInstance(it.key, it.value) }
+        )
+        info "Config file added ${config_id}:${config.type}"
+        break
+
+      case 'json':
+        jenkins_global_configs << org.jenkinsci.plugins.configfiles.json.JsonConfig.newInstance(
+          config_id,
+          config.name,
+          config.comment,
+          config.content
+        )
+        info "Config file added ${config_id}:${config.type}"
+        break
+
+      case 'properties':
+        jenkins_global_configs << org.jenkinsci.plugins.configfiles.properties.PropertiesConfig.newInstance(
+          config_id,
+          config.name,
+          config.comment,
+          config.content,
+          true,
+          config.creds?.collect { org.jenkinsci.plugins.configfiles.properties.security.PropertiesCredentialMapping.newInstance(it.key, it.value) }
+        )
+        info "Config file added ${config_id}:${config.type}"
+        break
+
+      case 'xml':
+        jenkins_global_configs << org.jenkinsci.plugins.configfiles.xml.XmlConfig.newInstance(
+          config_id,
+          config.name,
+          config.comment,
+          config.content
+        )
+        info "Config file added ${config_id}:${config.type}"
+        break
+
+      case 'custom':
+        jenkins_global_configs << org.jenkinsci.plugins.configfiles.custom.CustomConfig.newInstance(
+          config_id,
+          config.name,
+          config.comment,
+          config.content
         )
         info "Config file added ${config_id}:${config.type}"
         break
