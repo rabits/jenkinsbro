@@ -56,7 +56,6 @@ class PipelineJobTest extends JenkinsTest {
 
   @After
   void tearDown() {
-    super.tearDown()
     jenkins.getAuthorizationStrategy().getRoleMap(type).removeRole(role)
   }
 }

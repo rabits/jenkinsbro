@@ -28,14 +28,14 @@ class SimpleJUnitResultFormatterAsRunListener extends RunListener {
 
   SimpleJUnitResultFormatterAsRunListener(File report_dir) {
     this.report_dir = report_dir
-    this.suite_results = [:]
-    this.suite_timestamp = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone('UTC'))
   }
 
   @Override
   public void testRunStarted(Description description) throws Exception {
-    this.suite_name = description.getChildren()[0].toString()
-    println("Suite started: ${this.suite_name}, tests: ${description.testCount()}")
+    suite_name = description.getChildren()[0].toString()
+    suite_results = [:]
+    suite_timestamp = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone('UTC'))
+    println("Suite started: ${suite_name}, tests: ${description.testCount()}")
   }
 
   @Override
@@ -50,8 +50,8 @@ class SimpleJUnitResultFormatterAsRunListener extends RunListener {
     test_start_time = System.currentTimeMillis()
 
     // Capture the stdout/stderr
-    this.old_stdout = System.out
-    this.old_stderr = System.err
+    old_stdout = System.out
+    old_stderr = System.err
     System.setOut(new PrintStream(stdout = new ByteArrayOutputStream()))
     System.setErr(new PrintStream(stderr = new ByteArrayOutputStream()))
   }

@@ -58,8 +58,6 @@ class WebLoginTest extends JenkinsTest {
 
   @After
   void tearDown() {
-    super.tearDown()
-
     // Cleaning the test role
     jenkins.getAuthorizationStrategy().getRoleMap(type).removeRole(role)
   }

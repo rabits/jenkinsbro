@@ -89,32 +89,38 @@ Thread.start('JenkinsBro tests') {
       if( !it.name.endsWith('Test.groovy') )
         return
 
-      info "Init test suite: ${it.getName()}..."
-      Class clazz
       try {
-        clazz = cl.parseClass(it)
+        info "Init test suite: ${it.getName()}..."
+        Class clazz
+        try {
+          clazz = cl.parseClass(it)
+        } catch( Exception ex ) {
+          return error("Exception while loading test suite ${it}: ${ex}")
+        }
+
+        def annotation = clazz.getAnnotation(Module)
+        if( annotation ) {
+          def module = annotation.value()
+          if( MODULE.modules?.get(module, false) )
+            clazz.metaClass.MODULE = MODULE.modules.get(module)
+          else if( CONFIG.modules?.get(module, false) )
+            clazz.metaClass.MODULE = CONFIG.modules.get(module)
+          else
+            return info("Module ${module} is not configured, skiping test suite ${clazz.getName()}")
+        } else
+          info "Test suite ${clazz.getName()} doesn't prepended with annotation: @Module('xxx')"
+
+        info "Running test suite: ${it.getName()}..."
+        def result = core.run(clazz)
+        failed_tests += result.getFailureCount()
       } catch( Exception ex ) {
-        return error("Exception while loading test suite ${it}: ${ex}")
+        warn "Exception while running test suite ${it}: ${ex}"
+        ex.printStackTrace()
       }
-
-      def annotation = clazz.getAnnotation(Module)
-      if( annotation ) {
-        def module = annotation.value()
-        if( MODULE.modules.get(module, false) )
-          clazz.metaClass.MODULE = MODULE.modules.get(module)
-        else if( CONFIG.modules.get(module, false) )
-          clazz.metaClass.MODULE = CONFIG.modules.get(module)
-        else
-          return info("Module ${module} is not configured, skiping test suite ${clazz.getName()}")
-      } else
-        info "Test suite ${clazz.getName()} doesn't prepended with annotation: @Module('xxx')"
-
-      info "Running test suite: ${it.getName()}..."
-      def result = core.run(clazz)
-      failed_tests += result.getFailureCount()
     }
   } catch( Exception ex ) {
     warn "Exception while executing tests: ${ex}"
+    ex.printStackTrace()
   }
 
   status_file.write('Finished')
