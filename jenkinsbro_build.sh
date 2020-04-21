@@ -22,14 +22,15 @@ TAG=jenkinsbro-master
 
 if [ "${VAR_VERSION}" ]; then
     ver_url=http://mirrors.jenkins.io/war
+    ver="[0-9]"
     if [ "${VAR_VERSION}" = 'lts' ]; then
         ver_url=${ver_url}-stable
     elif [ "${VAR_VERSION}" != 'latest' ]; then
-        ver=$(echo "${VAR_VERSION}" | tr -dc '0123456789.')
+        ver=$(echo "${VAR_VERSION}" | tr -dc '0-9.')
         echo "Using specified version '${ver}'"
     fi
 
-    jenkins_version=$(curl -s "${ver_url}/" | grep -oE 'href="'${ver}'[^/]*' | tail -2 | head -1 | tr -dc '0123456789.')
+    jenkins_version=$(curl -s "${ver_url}/" | grep -oE 'href="'${ver}'[^/]*' | tail -1 | tr -dc '0-9.')
     echo "Available jenkins version: '${jenkins_version}'"
 
     [ "${jenkins_version}" ] || exit 1
