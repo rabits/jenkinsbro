@@ -6,6 +6,7 @@
  *     key {
  *       name           - name of the library to use as id
  *       scm_path       - git repo url or local directory path
+ *       refspec        - refspec mapping
  *       version        - branch/commit/tag in the repository
  *       credentials_id - credentials to clone the git repo
  *       implicitly     - load library by default for each pipeline job
@@ -22,7 +23,7 @@ pluginsActive 'workflow-cps-global-lib', 'git', {
       data.name,
       data.scm_path,
       data.credentials_id ?: null,
-      null, null, false
+      null, data.refspec ?: null, false
     )
     def lib_config = org.jenkinsci.plugins.workflow.libs.LibraryConfiguration.newInstance(
       data.name, org.jenkinsci.plugins.workflow.libs.SCMSourceRetriever.newInstance(scm_source)
