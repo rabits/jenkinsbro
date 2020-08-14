@@ -25,12 +25,25 @@ pluginsActive 'workflow-cps-global-lib', 'git', {
       data.credentials_id ?: null,
       null, data.refspec ?: null, false
     )
+
+    if( data.refspec ) {
+      def traits = scm_source.getTraits()
+      def refs = data.refspec.tokenize(' ')
+      for( ref in refs ) {
+        def ref_map = ref.tokenize(':')
+        if( ref_map[0] != 'master' )
+          traits.add(new jenkins.plugins.git.traits.DiscoverOtherRefsTrait(ref_map[0], ref_map[1]))
+      }
+      scm_source.setTraits(traits)
+    }
+
     def lib_config = org.jenkinsci.plugins.workflow.libs.LibraryConfiguration.newInstance(
       data.name, org.jenkinsci.plugins.workflow.libs.SCMSourceRetriever.newInstance(scm_source)
     )
     lib_config.setDefaultVersion(data.version ?: '')
     lib_config.setImplicit(data.implicitly ?: false)
     lib_config.setAllowVersionOverride(data.allow_override ?: true)
+
     return lib_config
   }
   gl.setLibraries(lib_configs)
