@@ -16,6 +16,9 @@
  *   JENKINSBRO_DIR     - used to locate tests and test helpers
  */
 
+// Need to get junit because jenkins 2.253 doesn't have it
+@Grab(group='junit', module='junit', version='4.13')
+
 import hudson.init.InitMilestone
 import jenkins.model.Jenkins
 
