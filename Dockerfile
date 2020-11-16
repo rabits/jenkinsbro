@@ -7,6 +7,8 @@ ARG JENKINS_VERSION=2.176.2
 ARG JENKINS_URL=https://updates.jenkins-ci.org/download/war/${JENKINS_VERSION}/jenkins.war
 # Check sha256 here: http://mirrors.jenkins.io/war-stable/
 ARG JENKINS_SHA=33a6c3161cf8de9c8729fd83914d781319fd1569acf487c7b1121681dba190a5
+ARG PLUGIN_CLI_URL=https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.1.1/jenkins-plugin-manager-2.1.1.jar
+ARG PLUGIN_CLI_SHA=da823e5476745b593b3b6ff3b92958bcef540b86bb4f6d463f6a0838a6f8bc78
 
 ARG JAVA_OPTS
 
@@ -47,6 +49,10 @@ RUN mkdir -p /usr/share/jenkins/ref/init.groovy.d
 RUN echo "${JENKINS_SHA} -" > sum.txt && curl -fLs "${JENKINS_URL}" | tee /usr/share/jenkins/jenkins.war | sha256sum -c sum.txt \
   && rm -f sum.txt
 
+# Download plugin cli manager
+RUN echo "${PLUGIN_CLI_SHA} -" > sum.txt && curl -fLs "${PLUGIN_CLI_URL}" | tee /usr/lib/jenkins-plugin-manager.jar | sha256sum -c sum.txt \
+  && rm -f sum.txt
+
 RUN chown -R ${user} "$JENKINS_HOME" /usr/share/jenkins/ref
 
 # for main web interface:
@@ -61,9 +67,8 @@ COPY jenkins-support /usr/local/bin/jenkins-support
 COPY jenkins.sh /usr/local/bin/jenkins.sh
 
 # Installing the required plugins
-COPY install-plugins.sh /usr/local/bin/install-plugins.sh
 COPY ${plugins_txt_path} /usr/share/jenkins/ref/plugins.txt
-RUN /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
+RUN java -jar /usr/lib/jenkins-plugin-manager.jar -f /usr/share/jenkins/ref/plugins.txt
 
 # Define build argument and env variable master_image_version
 # Used to pass info about Jenkins version so it can be represented
