@@ -23,7 +23,7 @@ TAG=jenkinsbro-master
 [ "x$3" = 'x' ] || FAIL_NOT_FOUND=True
 
 if [ "${VAR_VERSION}" ]; then
-    ver_url=http://mirrors.jenkins.io/war
+    ver_url=https://mirrors.jenkins.io/war
     ver="[0-9]"
     if [ "${VAR_VERSION}" = 'lts' ]; then
         ver_url=${ver_url}-stable
@@ -42,7 +42,7 @@ if [ "${VAR_VERSION}" ]; then
     fi
     echo "Using jenkins version: ${ver_url}/${jenkins_version}"
 
-    jenkins_sha=$(curl -s "${ver_url}/${jenkins_version}/jenkins.war.sha256" | cut -d" " -f 1)
+    jenkins_sha=$(curl -sL "${ver_url}/${jenkins_version}/jenkins.war.sha256" | cut -d" " -f 1)
 
     build_args="--build-arg JENKINS_VERSION=${jenkins_version} --build-arg JENKINS_SHA=${jenkins_sha}"
 fi

@@ -5,7 +5,7 @@ RUN apk add --no-cache git openssh-client curl unzip bash ttf-dejavu coreutils t
 
 ARG JENKINS_VERSION=2.176.2
 ARG JENKINS_URL=https://updates.jenkins-ci.org/download/war/${JENKINS_VERSION}/jenkins.war
-# Check sha256 here: http://mirrors.jenkins.io/war-stable/
+# Check sha256 here: https://mirrors.jenkins.io/war-stable/
 ARG JENKINS_SHA=33a6c3161cf8de9c8729fd83914d781319fd1569acf487c7b1121681dba190a5
 ARG PLUGIN_CLI_URL=https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.1.1/jenkins-plugin-manager-2.1.1.jar
 ARG PLUGIN_CLI_SHA=da823e5476745b593b3b6ff3b92958bcef540b86bb4f6d463f6a0838a6f8bc78
