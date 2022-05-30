@@ -32,7 +32,7 @@ if [ "${VAR_VERSION}" ]; then
         echo "Using specified version '${ver}'"
     fi
 
-    jenkins_version=$(curl -s "${ver_url}/" | grep -oE 'href="'${ver}'[^/]*' | tail -1 | tr -dc '0-9.')
+    jenkins_version=$(curl -s "${ver_url}/" | grep -oE 'href="'${ver}'[^/]*' | head -1 | tr -dc '0-9.')
     if [ "${FAIL_NOT_FOUND}" = "True" ]; then
         echo "Unable to find version for: ${VAR_VERSION} '${jenkins_version}'"
         [ "${jenkins_version}" ] || exit 1
